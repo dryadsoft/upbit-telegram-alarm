@@ -503,27 +503,39 @@ export default class TelegramBot {
       });
       return inline_button;
     } catch (err) {
-      throw err;
+      if (err.error.message) {
+        await this.sendMessage(err.error.message);
+      }
+      await asyncLog(JSON.stringify(err));
+      return "";
     }
   }
 
   async getHoldingCoins() {
-    this.allCoins = (await getMarketAllInfo()).KRW;
-    const myAllAcount = await getAllAccount();
-    const myHoldingCoins = myAllAcount.filter((item) => {
-      for (const coin of this.allCoins) {
-        // console.log(coin);
-        // 원화 현금은 제외
-        if (item.currency !== "KRW") {
-          if (coin.market === `${item.unit_currency}-${item.currency}`) {
-            return true;
+    try {
+      this.allCoins = (await getMarketAllInfo()).KRW;
+      const myAllAcount = await getAllAccount();
+      const myHoldingCoins = myAllAcount.filter((item) => {
+        for (const coin of this.allCoins) {
+          // console.log(coin);
+          // 원화 현금은 제외
+          if (item.currency !== "KRW") {
+            if (coin.market === `${item.unit_currency}-${item.currency}`) {
+              return true;
+            }
           }
         }
-      }
-    });
+      });
 
-    return myHoldingCoins.map(
-      (item) => `${item.unit_currency}-${item.currency}`
-    );
+      return myHoldingCoins.map(
+        (item) => `${item.unit_currency}-${item.currency}`
+      );
+    } catch (err) {
+      if (err.error.message) {
+        await this.sendMessage(err.error.message);
+      }
+      await asyncLog(JSON.stringify(err));
+      return [];
+    }
   }
 }

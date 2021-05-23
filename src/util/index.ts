@@ -471,9 +471,15 @@ export const asyncLog = (msg: any) => {
 
 export const getErrorMessage = (err: any) => {
   const {
-    config: { url, data },
     data: { error_code, description },
   } = err.response;
+  let url,
+    data = "";
+
+  if (err.response.config) {
+    url = err.response.config.url;
+    data = err.response.config.data;
+  }
   const errMessage = `error ${error_code}: ${description}
   ${url}
   ${data}`;
