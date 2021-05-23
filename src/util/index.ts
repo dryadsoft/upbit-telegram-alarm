@@ -470,15 +470,21 @@ export const asyncLog = (msg: any) => {
 };
 
 export const getErrorMessage = (err: any) => {
-  const {
-    data: { error_code, description },
-  } = err.response;
   let url,
-    data = "";
+    data,
+    error_code,
+    description = "";
 
   if (err.response.config) {
     url = err.response.config.url;
     data = err.response.config.data;
+  }
+  if (err.response.data) {
+    error_code = err.response.data.error_code;
+    description = err.response.data.description;
+  }
+  if (url === "" && data === "" && error_code === "" && description === "") {
+    return JSON.stringify(err);
   }
   const errMessage = `error ${error_code}: ${description}
   ${url}
