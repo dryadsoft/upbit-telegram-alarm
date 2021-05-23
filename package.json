@@ -1,0 +1,30 @@
+{
+  "name": "upbit-telegram-alarm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "backTest": "ts-node src/backTest/index.ts",
+    "backTest2": "ts-node src/backTest/test2.ts",
+    "build": "tsc",
+    "start:prod": "node dist/index.js",
+    "start:backTest": "node dist/backTest/index.js",
+    "start:backTest2": "node dist/backTest/test2.js"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.1",
+    "@types/node": "^15.0.1",
+    "@types/uuid": "^8.3.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "dotenv": "^8.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33",
+    "uuid": "^8.3.2"
+  }
+}
