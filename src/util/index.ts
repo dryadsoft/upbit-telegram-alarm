@@ -475,14 +475,15 @@ export const getErrorMessage = (err: any) => {
     error_code,
     description = "";
 
-  if (err.response.config) {
+  if (err.response) {
     url = err.response.config.url;
     data = err.response.config.data;
-  }
-  if (err.response.data) {
     error_code = err.response.data.error_code;
     description = err.response.data.description;
+  } else if (err.request) {
+    error_code = err.request;
   }
+
   if (url === "" && data === "" && error_code === "" && description === "") {
     return JSON.stringify(err);
   }
