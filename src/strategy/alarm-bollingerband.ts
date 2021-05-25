@@ -33,8 +33,8 @@ export const alarmBollingerBand = async (
             await sleep(1000);
           }
           let df = await get_ohlcvPlusOne(candleType, item, day);
-          df = await getYesterDayMa(df, day);
-          df = await getBollingerBand(df, day);
+          df = getYesterDayMa(df, day);
+          df = getBollingerBand(df, day);
 
           const lastIndex = df.length - 1;
           const market = df[lastIndex].market;

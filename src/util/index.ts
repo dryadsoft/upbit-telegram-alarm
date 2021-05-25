@@ -150,7 +150,7 @@ export async function getMa(df: IOhlcvProps[], maCount: number) {
 /**
  * ma 이동평균값 (전봉)
  */
-export async function getYesterDayMa(df: IOhlcvProps[], maCount: number) {
+export function getYesterDayMa(df: IOhlcvProps[], maCount: number) {
   for (let i = df.length - 1; i >= 0; i--) {
     if (i >= maCount - 1) {
       let maSum = 0;
@@ -167,7 +167,7 @@ export async function getYesterDayMa(df: IOhlcvProps[], maCount: number) {
  * ma 이동평균값을 이용하여 볼린저밴드값을 구한다.
  * 선행작업으로 이동평균값이 먼저 구해져있어야한다.
  */
-export async function getBollingerBand(df: IOhlcvProps[], maCount: number) {
+export function getBollingerBand(df: IOhlcvProps[], maCount: number) {
   for (let i = df.length - 1; i >= 0; i--) {
     if (i >= maCount - 1) {
       let deviation: number[] = []; // 편차(종가 - 이평선 평균값)
@@ -272,7 +272,7 @@ export const getTargetCoins = async (
       async (item: IMarketCoinProps) => {
         let df = await get_ohlcvPlusOne(type, item.market, days);
         // df = await getMa(df, days); // 이동평균값
-        df = await getYesterDayMa(df, days); // 이동평균값
+        df = getYesterDayMa(df, days); // 이동평균값
         const {
           targetPrice,
           currentPrice,
