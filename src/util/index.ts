@@ -481,7 +481,7 @@ export const getErrorMessage = (err: any) => {
     error_code = err.response.data.error_code;
     description = err.response.data.description;
   } else if (err.request) {
-    error_code = JSON.stringify(err.request);
+    error_code = err.request;
   }
 
   if (url === "" && data === "" && error_code === "" && description === "") {
