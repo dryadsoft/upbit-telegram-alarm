@@ -169,6 +169,12 @@ export interface IOhlcvProps {
   sqrt?: number; // 표준편차
   bollingerHigh?: number;
   bollingerLow?: number;
+  rs?: number;
+  rsiU?: number;
+  rsiD?: number;
+  rsiAU?: number;
+  rsiDU?: number;
+  rsi?: number;
 }
 
 export interface ITargetCoinsProps {
@@ -183,4 +189,13 @@ export interface ITargetCoinsProps {
   hpr: number;
   open: number;
   row: number;
+}
+
+export interface ITotalCoinsProps {
+  market: string;
+  close: number;
+  bollingerHigh: number;
+  maAvg: number;
+  bollingerLow: number;
+  rsi: number;
 }

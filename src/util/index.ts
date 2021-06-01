@@ -189,6 +189,40 @@ export function getBollingerBand(df: IOhlcvProps[], maCount: number) {
 }
 
 /**
+ * rsi 지표 구하기 (14봉 기준)
+ */
+export function getRsi(df: IOhlcvProps[], maCount: number) {
+  for (let i = df.length - 1; i > 0; i--) {
+    df[i].rs = df[i].close - df[i - 1].close || 0; //  현재종가 - 전일종가
+    df[i].rsiU = (df[i].rs || 0) > 0 ? df[i].rs : 0;
+    df[i].rsiD = ((df[i].rs || 0) < 0 ? df[i].rs || 0 : 0) * -1;
+  }
+  let maSumPlus = 0;
+  let maSumMinus = 0;
+  // 15, 28
+  for (let j = df.length - maCount; j < df.length; j++) {
+    if (j === df.length - maCount) {
+      // k > j - maCount  인지 k >= j - maCount 인지 검증할것!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      for (let k = j; k > j - maCount; k--) {
+        maSumPlus += df[k].rsiU || 0; //  현재종가 - 전일종가
+        maSumMinus += df[k].rsiD || 0;
+      }
+      df[j].rsiAU = maSumPlus / maCount;
+      df[j].rsiDU = maSumMinus / maCount;
+    } else {
+      df[j].rsiAU =
+        ((df[j - 1].rsiAU || 0) * (maCount - 1) + (df[j].rsiU || 0)) / 14;
+      df[j].rsiDU =
+        ((df[j - 1].rsiDU || 0) * (maCount - 1) + (df[j].rsiD || 0)) / 14;
+    }
+    df[j].rsi =
+      ((df[j].rsiAU || 0) / ((df[j].rsiAU || 0) + (df[j].rsiDU || 0))) * 100;
+    // console.log(maSumPlus, maSumMinus);
+  }
+  return df;
+}
+
+/**
  * 목표가
  */
 export const getTargetPrice = async (df: IOhlcvProps[]) => {

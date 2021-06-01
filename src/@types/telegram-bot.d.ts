@@ -69,3 +69,8 @@ export interface IUpbitParamProps {
   arrCoin?: string[];
   holdingCoinsYn?: "Y" | "N";
 }
+
+export interface IRsiHighRowProps {
+  high?: number;
+  low?: number;
+}

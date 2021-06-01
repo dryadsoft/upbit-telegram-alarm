@@ -15,7 +15,7 @@ const TELEGRAM_CHAT_ID = <string>process.env.TELEGRAM_CHAT_ID;
     const telegramBot = new TelegramBot(TELEGRAM_TOKEN, TELEGRAM_CHAT_ID);
     await telegramBot.init({
       candleType: "60",
-      days: 20,
+      days: 28,
     });
     telegramBot.watchChat();
 
@@ -24,15 +24,16 @@ const TELEGRAM_CHAT_ID = <string>process.env.TELEGRAM_CHAT_ID;
         const alarmOnOff = telegramBot.getAlarmOnOff();
 
         if (alarmOnOff === "on") {
-          const { candleType, days, lowPersentage, arrCoin, allCoins } =
+          const { candleType, days, lowPersentage, arrCoin, allCoins, rsiHR } =
             telegramBot.getUpbitParam();
-
+          // console.log(rsiHR);
           const arrMessage = await alarmBollingerBand(
             candleType,
             days,
             lowPersentage,
             arrCoin,
-            allCoins
+            allCoins,
+            rsiHR
           );
           const msg = arrMessage.map(async (message) => {
             return await telegramBot.sendMessage(message);
