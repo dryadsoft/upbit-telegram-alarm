@@ -40,3 +40,5 @@ $ pm2 start dist/index.js --name "upbit-telegram-alarm"
 ```shell
 $ pm2 start dist/index.js --name "upbit-telegram-alarm" -o /home/pi/log/auto-trade.log -e /home/pi/log/auto-trade.log --merge-logs
 ```
+
+...
