@@ -45,13 +45,11 @@ export default class TelegramBot {
     this.initSendMessage(message);
   }
 
-  watchChat() {
-    setTimeout(async () => {
-      while (true) {
-        await this.getUpdates();
-        await sleep(1000);
-      }
-    }, 0);
+  async watchChat() {
+    while (true) {
+      await this.getUpdates();
+      await sleep(1000);
+    }
   }
 
   getLastUpdateId() {

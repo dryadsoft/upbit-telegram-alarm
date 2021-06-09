@@ -516,6 +516,9 @@ export const getErrorMessage = (err: any) => {
     description = err.response.data.description;
   } else if (err.request) {
     error_code = err.request;
+    console.log("======================================================");
+    console.log(err.request);
+    console.log("======================================================");
   }
 
   if (url === "" && data === "" && error_code === "" && description === "") {
