@@ -47,8 +47,14 @@ export default class TelegramBot {
 
   async watchChat() {
     while (true) {
-      await this.getUpdates();
-      await sleep(1000);
+      try {
+        await this.getUpdates();
+        await sleep(1000);
+      } catch (err) {
+        console.log("start=============================watchChat");
+        console.log(err);
+        console.log("end=============================watchChat");
+      }
     }
   }
 
