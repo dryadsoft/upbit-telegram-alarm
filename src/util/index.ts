@@ -150,7 +150,7 @@ export async function getMa(df: IOhlcvProps[], maCount: number) {
 /**
  * ma 이동평균값 (전봉)
  */
-export async function getYesterDayMa(df: IOhlcvProps[], maCount: number) {
+export function getYesterDayMa(df: IOhlcvProps[], maCount: number) {
   for (let i = df.length - 1; i >= 0; i--) {
     if (i >= maCount - 1) {
       let maSum = 0;
@@ -167,7 +167,7 @@ export async function getYesterDayMa(df: IOhlcvProps[], maCount: number) {
  * ma 이동평균값을 이용하여 볼린저밴드값을 구한다.
  * 선행작업으로 이동평균값이 먼저 구해져있어야한다.
  */
-export async function getBollingerBand(df: IOhlcvProps[], maCount: number) {
+export function getBollingerBand(df: IOhlcvProps[], maCount: number) {
   for (let i = df.length - 1; i >= 0; i--) {
     if (i >= maCount - 1) {
       let deviation: number[] = []; // 편차(종가 - 이평선 평균값)
@@ -184,6 +184,40 @@ export async function getBollingerBand(df: IOhlcvProps[], maCount: number) {
       df[i].bollingerHigh = maAvg + sqrt * 2;
       df[i].bollingerLow = maAvg - sqrt * 2;
     }
+  }
+  return df;
+}
+
+/**
+ * rsi 지표 구하기 (14봉 기준)
+ */
+export function getRsi(df: IOhlcvProps[], maCount: number) {
+  for (let i = df.length - 1; i > 0; i--) {
+    df[i].rs = df[i].close - df[i - 1].close || 0; //  현재종가 - 전일종가
+    df[i].rsiU = (df[i].rs || 0) > 0 ? df[i].rs : 0;
+    df[i].rsiD = ((df[i].rs || 0) < 0 ? df[i].rs || 0 : 0) * -1;
+  }
+  let maSumPlus = 0;
+  let maSumMinus = 0;
+  // 15, 28
+  for (let j = df.length - maCount; j < df.length; j++) {
+    if (j === df.length - maCount) {
+      // k > j - maCount  인지 k >= j - maCount 인지 검증할것!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      for (let k = j; k > j - maCount; k--) {
+        maSumPlus += df[k].rsiU || 0; //  현재종가 - 전일종가
+        maSumMinus += df[k].rsiD || 0;
+      }
+      df[j].rsiAU = maSumPlus / maCount;
+      df[j].rsiDU = maSumMinus / maCount;
+    } else {
+      df[j].rsiAU =
+        ((df[j - 1].rsiAU || 0) * (maCount - 1) + (df[j].rsiU || 0)) / 14;
+      df[j].rsiDU =
+        ((df[j - 1].rsiDU || 0) * (maCount - 1) + (df[j].rsiD || 0)) / 14;
+    }
+    df[j].rsi =
+      ((df[j].rsiAU || 0) / ((df[j].rsiAU || 0) + (df[j].rsiDU || 0))) * 100;
+    // console.log(maSumPlus, maSumMinus);
   }
   return df;
 }
@@ -272,7 +306,7 @@ export const getTargetCoins = async (
       async (item: IMarketCoinProps) => {
         let df = await get_ohlcvPlusOne(type, item.market, days);
         // df = await getMa(df, days); // 이동평균값
-        df = await getYesterDayMa(df, days); // 이동평균값
+        df = getYesterDayMa(df, days); // 이동평균값
         const {
           targetPrice,
           currentPrice,
@@ -470,10 +504,26 @@ export const asyncLog = (msg: any) => {
 };
 
 export const getErrorMessage = (err: any) => {
-  const {
-    config: { url, data },
-    data: { error_code, description },
-  } = err.response;
+  let url,
+    data,
+    error_code,
+    description = "";
+
+  if (err.response) {
+    url = err.response.config.url;
+    data = err.response.config.data;
+    error_code = err.response.data.error_code;
+    description = err.response.data.description;
+  } else if (err.request) {
+    error_code = err.request;
+    console.log("======================================================");
+    console.log(err.request);
+    console.log("======================================================");
+  }
+
+  if (url === "" && data === "" && error_code === "" && description === "") {
+    return JSON.stringify(err);
+  }
   const errMessage = `error ${error_code}: ${description}
   ${url}
   ${data}`;

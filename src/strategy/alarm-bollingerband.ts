@@ -1,27 +1,27 @@
-import { IMarketCoinProps, TCandleType } from "../@types/ubit";
+import { IRsiHighRowProps } from "../@types/telegram-bot";
+import {
+  IMarketCoinProps,
+  ITotalCoinsProps,
+  TCandleType,
+} from "../@types/ubit";
 import {
   calcOfYield,
   getBollingerBand,
   getFixed,
+  getRsi,
   getYesterDayMa,
   get_ohlcvPlusOne,
   localeString,
   sleep,
 } from "../util";
 
-interface ITotalCoinsProps {
-  market: string;
-  close: number;
-  bollingerHigh: number;
-  maAvg: number;
-  bollingerLow: number;
-}
 export const alarmBollingerBand = async (
   candleType: TCandleType,
   day: number,
   lowPersentage = 0,
   arrCoin: any,
-  allCoins: IMarketCoinProps[]
+  allCoins: IMarketCoinProps[],
+  rsiHR: IRsiHighRowProps
 ) => {
   try {
     let totalCoins: ITotalCoinsProps[] = [];
@@ -33,9 +33,9 @@ export const alarmBollingerBand = async (
             await sleep(1000);
           }
           let df = await get_ohlcvPlusOne(candleType, item, day);
-          df = await getYesterDayMa(df, day);
-          df = await getBollingerBand(df, day);
-
+          df = getYesterDayMa(df, 20);
+          df = getBollingerBand(df, 20);
+          df = getRsi(df, 14);
           const lastIndex = df.length - 1;
           const market = df[lastIndex].market;
           const close = getFixed(df[lastIndex].close, 3);
@@ -43,6 +43,7 @@ export const alarmBollingerBand = async (
             <number>df[lastIndex].bollingerHigh,
             3
           );
+          const rsi = df[lastIndex].rsi;
           const maAvg = getFixed(<number>df[lastIndex].maAvg, 3);
           const bollingerLow = getFixed(<number>df[lastIndex].bollingerLow, 3);
           return {
@@ -51,6 +52,7 @@ export const alarmBollingerBand = async (
             bollingerHigh,
             maAvg,
             bollingerLow,
+            rsi,
           };
         }
       );
@@ -68,6 +70,7 @@ export const alarmBollingerBand = async (
       // );
       let message = "";
       if (coinInfo.close <= calcOfYield(coinInfo.bollingerLow, lowPersentage)) {
+        // 볼밴low 밑으로 내려갔을때
         const coin_koreanName = allCoins.filter(
           (coin) => coin.market === coinInfo.market
         )[0].korean_name;
@@ -77,6 +80,35 @@ export const alarmBollingerBand = async (
         message += `볼밴 H: ${localeString(coinInfo.bollingerHigh)}` + "\n";
         message += `볼밴 M: ${localeString(coinInfo.maAvg)}` + "\n";
         message += `볼밴 L: ${localeString(coinInfo.bollingerLow)}` + "\n";
+        message += `RSI: ${localeString(coinInfo.rsi)}` + "\n";
+      } else {
+        if (rsiHR.low) {
+          if (coinInfo.rsi < rsiHR.low) {
+            const coin_koreanName = allCoins.filter(
+              (coin) => coin.market === coinInfo.market
+            )[0].korean_name;
+            message = "RSI low값 밑으로 내려감" + "\n";
+            message += `코인: ${coin_koreanName}` + "\n";
+            message += `현재가: ${localeString(coinInfo.close)}` + "\n";
+            message += `볼밴 H: ${localeString(coinInfo.bollingerHigh)}` + "\n";
+            message += `볼밴 M: ${localeString(coinInfo.maAvg)}` + "\n";
+            message += `볼밴 L: ${localeString(coinInfo.bollingerLow)}` + "\n";
+            message += `RSI: ${localeString(coinInfo.rsi)}` + "\n";
+          }
+        } else if (rsiHR.high) {
+          if (coinInfo.rsi > rsiHR.high) {
+            const coin_koreanName = allCoins.filter(
+              (coin) => coin.market === coinInfo.market
+            )[0].korean_name;
+            message = "RSI high값 위로 올라감" + "\n";
+            message += `코인: ${coin_koreanName}` + "\n";
+            message += `현재가: ${localeString(coinInfo.close)}` + "\n";
+            message += `볼밴 H: ${localeString(coinInfo.bollingerHigh)}` + "\n";
+            message += `볼밴 M: ${localeString(coinInfo.maAvg)}` + "\n";
+            message += `볼밴 L: ${localeString(coinInfo.bollingerLow)}` + "\n";
+            message += `RSI: ${localeString(coinInfo.rsi)}` + "\n";
+          }
+        }
       }
       // else if (close >= bollingerHigh) {
       //   message = `볼린저밴드 high값 위로 올라감

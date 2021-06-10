@@ -1,5 +1,9 @@
 import axios from "axios";
-import { IResultProps, IUpbitParamProps } from "../@types/telegram-bot";
+import {
+  IResultProps,
+  IRsiHighRowProps,
+  IUpbitParamProps,
+} from "../@types/telegram-bot";
 import { IMarketCoinProps, TCandleType } from "../@types/ubit";
 import { getAllAccount, getMarketAllInfo } from "../ubit";
 import { asyncLog, getDivByNum, getErrorMessage, sleep } from "../util";
@@ -15,7 +19,8 @@ export default class TelegramBot {
   private days: number;
   private lowPersentage: number;
   private allCoins: IMarketCoinProps[];
-
+  private rsiHR: IRsiHighRowProps;
+  private rsiTmpHR: IRsiHighRowProps;
   constructor(teletramToken: string, chatId: string) {
     this.teletramToken = teletramToken;
     this.chatId = chatId;
@@ -28,6 +33,8 @@ export default class TelegramBot {
     this.arrTmpCoin = [];
 
     this.allCoins = [];
+    this.rsiHR = {};
+    this.rsiTmpHR = {};
   }
 
   async init({ candleType, days }: IUpbitParamProps) {
@@ -38,13 +45,11 @@ export default class TelegramBot {
     this.initSendMessage(message);
   }
 
-  watchChat() {
-    setTimeout(async () => {
-      while (true) {
-        await this.getUpdates();
-        await sleep(1000);
-      }
-    }, 0);
+  async watchChat() {
+    while (true) {
+      await this.getUpdates();
+      await sleep(1000);
+    }
   }
 
   getLastUpdateId() {
@@ -63,6 +68,7 @@ export default class TelegramBot {
       lowPersentage: this.lowPersentage,
       arrCoin: this.arrCoin,
       allCoins: this.allCoins,
+      rsiHR: this.rsiHR,
     };
   }
 
@@ -89,7 +95,11 @@ export default class TelegramBot {
     message +=
       `코인: ${this.getCoinKoreanName(selectedCoins).join(", ")}` + "\n";
     message += `캔들: ${this.candleType} 봉` + "\n";
-    message += `알람기준: ${this.lowPersentage}%` + "\n";
+    message += `볼밴: ${this.lowPersentage}%` + "\n";
+    message +=
+      `RSI: low - ${this.rsiHR.low || `미선택`}, high - ${
+        this.rsiHR.high || `미선택`
+      }` + "\n";
     return message;
   }
 
@@ -214,11 +224,19 @@ export default class TelegramBot {
                       candleButton
                     );
                     break;
-                  case "/알람기준":
+                  case "/볼밴":
                     const persentageButton = this.persentageButton();
                     this.sendinlineButtonMessage(
-                      "알람기준을 선택하십시오.",
+                      "볼린저밴드 기준을 선택하십시오.",
                       persentageButton
+                    );
+                    break;
+                  case "/RSI":
+                    this.rsiTmpHR = {}; // 초기화
+                    const rsiButton = this.rsiButton();
+                    this.sendinlineButtonMessage(
+                      "RSI 기준을 선택하십시오.",
+                      rsiButton
                     );
                     break;
                   default:
@@ -253,7 +271,7 @@ export default class TelegramBot {
                 await this.deleteMessage(message_id);
                 await this.sendInlineKeboardMessage(message2);
                 break;
-              case "알람기준을 선택하십시오.":
+              case "볼린저밴드 기준을 선택하십시오.":
                 this.setUpbitParam({
                   ...this.getUpbitParam(),
                   lowPersentage: Number(data),
@@ -317,6 +335,26 @@ export default class TelegramBot {
                   this.arrTmpCoin.push(data);
                 }
 
+                break;
+              case "RSI 기준을 선택하십시오.":
+                if (data === "confirm") {
+                  this.rsiHR = this.rsiTmpHR;
+                  if (Object.keys(this.rsiHR).length === 0) {
+                    message2 = "RSI지표 알람이 꺼졌습니다.";
+                  } else {
+                    message2 = `RSI지표 알람기준이 선택되었습니다.\n(low: ${
+                      this.rsiHR.low || `미선택`
+                    }, high: ${this.rsiHR.high || "미선택"})`;
+                  }
+                  await this.deleteMessage(message_id);
+                  await this.sendInlineKeboardMessage(message2);
+                } else {
+                  if (data < "50") {
+                    this.rsiTmpHR.low = parseInt(data, 10);
+                  } else {
+                    this.rsiTmpHR.high = parseInt(data, 10);
+                  }
+                }
                 break;
             }
           }
@@ -421,7 +459,7 @@ export default class TelegramBot {
     const keyboard = JSON.stringify({
       keyboard: [
         [alarmOnOfButton, "/코인선택"],
-        [`/알람기준`, `/캔들`],
+        [`/볼밴`, `/RSI`, `/캔들`],
       ],
       resize_keyboard: true,
     });
@@ -503,27 +541,58 @@ export default class TelegramBot {
       });
       return inline_button;
     } catch (err) {
-      throw err;
+      if (err.error.message) {
+        await this.sendMessage(err.error.message);
+      }
+      await asyncLog(JSON.stringify(err));
+      return "";
     }
   }
-
+  rsiButton() {
+    const inline_button = JSON.stringify({
+      inline_keyboard: [
+        [
+          { text: "10", callback_data: "10" },
+          { text: "20", callback_data: "20" },
+          { text: "30", callback_data: "30" },
+          { text: "40", callback_data: "40" },
+        ],
+        [
+          { text: "60", callback_data: "60" },
+          { text: "70", callback_data: "70" },
+          { text: "80", callback_data: "80" },
+          { text: "90", callback_data: "90" },
+        ],
+        [{ text: "확인", callback_data: "confirm" }],
+      ],
+    });
+    return inline_button;
+  }
   async getHoldingCoins() {
-    this.allCoins = (await getMarketAllInfo()).KRW;
-    const myAllAcount = await getAllAccount();
-    const myHoldingCoins = myAllAcount.filter((item) => {
-      for (const coin of this.allCoins) {
-        // console.log(coin);
-        // 원화 현금은 제외
-        if (item.currency !== "KRW") {
-          if (coin.market === `${item.unit_currency}-${item.currency}`) {
-            return true;
+    try {
+      this.allCoins = (await getMarketAllInfo()).KRW;
+      const myAllAcount = await getAllAccount();
+      const myHoldingCoins = myAllAcount.filter((item) => {
+        for (const coin of this.allCoins) {
+          // console.log(coin);
+          // 원화 현금은 제외
+          if (item.currency !== "KRW") {
+            if (coin.market === `${item.unit_currency}-${item.currency}`) {
+              return true;
+            }
           }
         }
-      }
-    });
+      });
 
-    return myHoldingCoins.map(
-      (item) => `${item.unit_currency}-${item.currency}`
-    );
+      return myHoldingCoins.map(
+        (item) => `${item.unit_currency}-${item.currency}`
+      );
+    } catch (err) {
+      if (err.error.message) {
+        await this.sendMessage(err.error.message);
+      }
+      await asyncLog(JSON.stringify(err));
+      return [];
+    }
   }
 }
