@@ -123,7 +123,7 @@ telegramApi.on("text", async ({ chatId, messageId, text, options }) => {
           `코인: ${options.selectedCoins
             .map((item: any) => item.korean_name)
             .join(", ")}` + "\n";
-        sendMsg += `볼린저밴드: ${options.selectedBollinger}`;
+        sendMsg += `볼린저밴드: ${options.selectedBollinger} %`;
         // await telegramApi.sendMessage(chatId, sendMsg);
         await telegramApi.sendKeyboardMessage(
           chatId,
@@ -206,7 +206,7 @@ telegramApi.watch(async ({ options }) => {
           const getPromiseValue = arrCoin[i].map(
             async (objCoin: ICoinProps) => {
               if (i > 0) {
-                console.log(i);
+                // console.log(i);
                 await telegramApi.sleep(1000);
               }
 
