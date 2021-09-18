@@ -20,8 +20,7 @@ const telegramApi = new TelegramApi(TELEGRAM_TOKEN, {
   process: "series", // parallel: 병렬 메시지 처리, series: 직렬 메시지 처리
 });
 
-// 1. 채팅창 메시지 입력 후 콜백처리
-// telegramApi.on("init", asyc() => {});
+// 1. 사용자변수 생성 및 초기화
 telegramApi.init((options) => {
   options.chatId = "";
   options.isAlarmOn = false;

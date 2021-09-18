@@ -1,43 +1,60 @@
 # upbit-telegram-alarm
 
-npm 사용:
+## 설치 (install):
 
 ```bash
-$ npm i upbit-telegram-alarm
+$ git clone https://github.com/dryadsoft/upbit-telegram-alarm.git
 ```
 
-yarn 사용:
+프로젝트경로로 이동:
 
 ```bash
-$ yarn add upbit-telegram-alarm
+$ cd upbit-telegram-alarm
 ```
 
-프로젝트 dependencies 패키지 설치
+프로젝트 dependencies 패키지 설치:
 
-```shell
+```bash
 $ yarn install
-또는
+# 또는
 $ npm install
 ```
 
-pm2 패키지 설치
+환경설정파일생성:
 
-```shell
+```bash
+# 프로젝트 root 경로에 .env 파일 생성
+$ touch .env
+```
+
+.env 파일에 텔레그램토큰 입력
+
+```
+TELEGRAM_TOKEN=텔레그램토큰입력
+```
+
+pm2 패키지 설치:
+
+> pm2 패키지가 이미 설치되어있다면 다시 설치할 필요없다.
+
+```bash
 $ yarn global add pm2
-또는
+# 또는
 $ npm i -g pm2
 ```
 
-실행
+## 실행
 
-- 프로젝트 root 경로에서 실행한다.
+> 프로젝트 root 경로에서 실행한다.
 
-```shell
-$ pm2 start lib/index.js --name "upbit-telegram-alarm"
+기본실행:
+
+```bash
+$ pm2 start dist/index.js --name "upbit-telegram-alarm"
 ```
 
-- 실행시 로그생성
+실행시 로그파일 생성:
 
-```shell
-$ pm2 start lib/index.js --name "upbit-telegram-alarm" -o ./upbit-telegram-alarm.log -e ./upbit-telegram-alarm.log --merge-logs
+```bash
+$ pm2 start dist/index.js --name "upbit-telegram-alarm" -o ./upbit-telegram-alarm.log -e ./upbit-telegram-alarm.log --merge-logs
 ```

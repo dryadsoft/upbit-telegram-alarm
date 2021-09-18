@@ -24,8 +24,8 @@
     "텔레그램봇"
   ],
   "scripts": {
-    "build": "rm -rf lib && tsc && cp -r src/@types lib/@types",
-    "build_debug": "rm -rf lib && tsc -p ./.tsconfig && cp -r src/@types lib/@types",
+    "build": "rm -rf dist && tsc && cp -r src/@types dist/@types",
+    "build_debug": "rm -rf dist && tsc -p ./.tsconfig && cp -r src/@types dist/@types",
     "prepublishOnly": "yarn build",
     "dev": "ts-node src/index.ts"
   },
